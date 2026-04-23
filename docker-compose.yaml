@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: employee_db
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: YourStrong@Passw0rd
+      MSSQL_PID: Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'YourStrong@Passw0rd' -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    networks:
+      - app_network
+
+  webapp:
+    build:
+      context: .  
+      dockerfile: Dockerfile
+    container_name: webapp
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Default=Server=sqlserver,1433;Database=EmployeeDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - app_network
+
+volumes:
+  sql_data:
+
+networks:
+  app_network:
+    driver: bridge

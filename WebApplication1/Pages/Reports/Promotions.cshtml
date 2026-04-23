@@ -1,0 +1,85 @@
+﻿@page
+@model WebApplication1.Pages.Reports.PromotionsModel
+@{
+    ViewData["Title"] = "Предстоящее повышение ЗП";
+}
+
+<h2>Предстоящее повышение ЗП</h2>
+
+<!-- Кнопка для скачивания Excel -->
+<div class="mb-3">
+    <form method="post" asp-page-handler="ExportExcel" style="display: inline;">
+        <button type="submit" class="btn btn-success">
+            Скачать Excel-отчёт
+        </button>
+    </form>
+</div>
+
+<!-- Таблица с текущими повышениями -->
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>ФИО</th>
+            <th>Табельный номер</th>
+            <th>Подразделение</th>
+            <th>Процент повышения</th>
+            <th>Дата добавления</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Promotions.Any())
+        {
+            <tr>
+                <td colspan="5" class="text-center">Нет данных о повышениях</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in Model.Promotions)
+            {
+                <tr>
+                    <td>@item.EmployeeFullName</td>
+                    <td>@item.StuffNumber</td>
+                    <td>@item.DepartmentName</td>
+                    <td>@item.IncreasingPercent%</td>
+                    <td>@item.CreatedAt.ToString("dd.MM.yyyy")</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<!-- Форма для добавления нового повышения -->
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h4>Добавить сотрудника в список на повышение</h4>
+    </div>
+    <div class="card-body">
+        <form method="post" asp-page-handler="Add">
+            <div class="row">
+                <div class="col-md-6">
+                    <label asp-for="SelectedEmployeeId" class="form-label">Сотрудник</label>
+                    <select asp-for="SelectedEmployeeId" class="form-select" required>
+                        <option value="">-- Выберите сотрудника --</option>
+                        @foreach (var emp in Model.AllEmployees)
+                        {
+                            <option value="@emp.Id">@emp.FullName (Таб. №@emp.StuffNumber)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="IncreasePercent" class="form-label">Процент повышения</label>
+                    <input asp-for="IncreasePercent" type="number" step="0.1" class="form-control" required />
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Добавить</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="mt-3">   
+    <a asp-page="/Reports/NoPromotion" class="btn btn-info">Сотрудники без повышения</a>
+</div>
